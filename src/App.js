@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-
 class App extends Component {
     render() {
         return (
@@ -23,14 +22,14 @@ class Board extends Component {
 
         this.state = {
             cards: [
-                {number: 1, open: false}, {number: 1, open: false},
-                {number: 2, open: false}, {number: 2, open: false},
-                {number: 3, open: false}, {number: 3, open: false},
-                {number: 4, open: false}, {number: 4, open: false},
-                {number: 5, open: false}, {number: 5, open: false},
-                {number: 6, open: false}, {number: 6, open: false},
-                {number: 7, open: false}, {number: 7, open: false},
-                {number: 8, open: false}, {number: 8, open: false},
+                {number: 1, open: false, match: false}, {number: 1, open: false, match: false},
+                {number: 2, open: false, match: false}, {number: 2, open: false, match: false},
+                {number: 3, open: false, match: false}, {number: 3, open: false, match: false},
+                {number: 4, open: false, match: false}, {number: 4, open: false, match: false},
+                {number: 5, open: false, match: false}, {number: 5, open: false, match: false},
+                {number: 6, open: false, match: false}, {number: 6, open: false, match: false},
+                {number: 7, open: false, match: false}, {number: 7, open: false, match: false},
+                {number: 8, open: false, match: false}, {number: 8, open: false, match: false},
             ],
             feedBackTxt: 'Find all matches',
             cardPicks: []
@@ -42,7 +41,11 @@ class Board extends Component {
     }
 
     evaluatePick = (pick) => {
-        if (pick.open) {
+        if (pick.match || pick.open){
+            let msg = pick.open ? 'open!' : 'matched!'
+            this.setState({
+                feedBackTxt: 'Try some other card, that one is already ' + msg
+            })
             return
         }
 
@@ -64,21 +67,31 @@ class Board extends Component {
         if (this.state.cardPicks.length > 1) {
             let compare = this.state.cardPicks.slice(this.state.cardPicks.length - 2, this.state.cardPicks.length)
             if (compare[0].number === compare[1].number) {
+                let cards = this.state.cards
+                cards[compare[0].index].match = true
+                cards[compare[1].index].match = true
                 this.setState({
-                    feedBackTxt: "You've got a card match!"
+                    feedBackTxt: "You've got a card match!",
+                    cards: cards,
+                    cardPicks:[]
                 })
             } else {
-                let cards = this.state.cards
-                // cards[compare[0].index].open = false
-                // cards[compare[1].index].open = false
                 this.setState({
                     feedBackTxt: "Not a match, keep trying!",
-                    cards:cards
+                    cardPicks:[]
+                }, () => {
+                    setTimeout(() => {
+                        let cards = this.state.cards
+                        cards[compare[0].index].open = false
+                        cards[compare[1].index].open = false
+                        this.setState({
+                            cards: cards
+                        })
+                    }, 1000)
                 })
             }
         }
     }
-
 
     shuffleCards = () => {
         this.setState({
@@ -107,14 +120,14 @@ class Board extends Component {
     }
 }
 
-
 class Card extends Component {
     constructor(props) {
         super(props)
         this.state = {
             cardClass: props.card.open ? 'card open' : 'card closed',
-            open: props.open,
+            open: props.card.open,
             number: props.card.number,
+            match: props.card.match,
             index: props.index,
             evaluatePick: props.evaluatePick
         }
@@ -124,7 +137,8 @@ class Card extends Component {
         let pick = {
             number: this.state.number,
             open: this.state.open,
-            index: this.state.index
+            index: this.state.index,
+            match: this.state.match,
         }
         this.state.evaluatePick(pick)
     }
@@ -132,7 +146,8 @@ class Card extends Component {
     componentWillReceiveProps = (newProps) => {
         this.setState({
             cardClass: newProps.card.open ? 'card open' : 'card closed',
-            open: newProps.open,
+            open: newProps.card.open,
+            match: newProps.card.match,
         })
     }
 
