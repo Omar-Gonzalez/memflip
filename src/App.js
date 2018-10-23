@@ -32,7 +32,8 @@ class Board extends Component {
                 {number: 8, open: false, match: false}, {number: 8, open: false, match: false},
             ],
             feedBackTxt: 'Find all matches',
-            cardPicks: []
+            cardPicks: [],
+            score: 0,
         }
     }
 
@@ -41,7 +42,7 @@ class Board extends Component {
     }
 
     evaluatePick = (pick) => {
-        if (pick.match || pick.open){
+        if (pick.match || pick.open) {
             let msg = pick.open ? 'open!' : 'matched!'
             this.setState({
                 feedBackTxt: 'Try some other card, that one is already ' + msg
@@ -64,28 +65,35 @@ class Board extends Component {
     }
 
     comparePicks = () => {
-        if (this.state.cardPicks.length > 1) {
-            let compare = this.state.cardPicks.slice(this.state.cardPicks.length - 2, this.state.cardPicks.length)
-            if (compare[0].number === compare[1].number) {
+        let cardPicks = this.state.cardPicks
+        if (cardPicks.length > 1) {
+            if (cardPicks[0].number === cardPicks[1].number) {
                 let cards = this.state.cards
-                cards[compare[0].index].match = true
-                cards[compare[1].index].match = true
+                let score = this.state.score + 10
+                cards[cardPicks[0].index].match = true
+                cards[cardPicks[1].index].match = true
                 this.setState({
                     feedBackTxt: "You've got a card match!",
                     cards: cards,
-                    cardPicks:[]
+                    cardPicks: [],
+                    score:score
                 })
             } else {
                 this.setState({
                     feedBackTxt: "Not a match, keep trying!",
-                    cardPicks:[]
+                    cardPicks: []
                 }, () => {
                     setTimeout(() => {
                         let cards = this.state.cards
-                        cards[compare[0].index].open = false
-                        cards[compare[1].index].open = false
+                        let score = this.state.score
+                        if(score > 3){
+                            score = score - 3
+                        }
+                        cards[cardPicks[0].index].open = false
+                        cards[cardPicks[1].index].open = false
                         this.setState({
-                            cards: cards
+                            cards: cards,
+                            score:score
                         })
                     }, 1000)
                 })
@@ -106,6 +114,13 @@ class Board extends Component {
             <div>
                 <div className={'score'}>
                     <p>{this.state.feedBackTxt}</p>
+                    {
+                        (() => {
+                            if (this.state.score > 0) {
+                                return <p>Score: <strong>{this.state.score}</strong></p>
+                            }
+                        })()
+                    }
                 </div>
                 <div className={'board'}>
                     {
@@ -115,7 +130,6 @@ class Board extends Component {
                     }
                 </div>
             </div>
-
         )
     }
 }
